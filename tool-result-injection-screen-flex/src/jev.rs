@@ -151,8 +151,9 @@ pub fn parse_chat_signals(body: &[u8]) -> Result<Signals, JevError> {
     Ok(signals_from_json(&parsed))
 }
 
-/// TypeSafe Jev decisions request (noul/choice). VERIFY the exact envelope against
-/// the TypeSafe System One API for your account before production use.
+/// TypeSafe Jev decisions request (noul/choice). Envelope verified live against the
+/// OpenRouter Decisions API (`POST https://openrouter.ai/api/alpha/decisions`,
+/// model `~typesafe/jev-latest`), which serves the TypeSafe Jev models.
 pub fn build_typesafe_body(model: &str, tool_name: &str, state_text: &str) -> Value {
     serde_json::json!({
         "model": model,
@@ -195,13 +196,17 @@ pub fn build_typesafe_body(model: &str, tool_name: &str, state_text: &str) -> Va
 pub fn parse_typesafe_signals(body: &[u8]) -> Result<Signals, JevError> {
     let v: Value = serde_json::from_slice(body).map_err(|e| JevError::Decode(e.to_string()))?;
     let answers = v.get("answers").unwrap_or(&v);
+    // OpenRouter's Decisions API returns a noul answer as `{type:"noul", noul:<p>}`;
+    // other TypeSafe hosts have used `p_yes` or `probabilities/true` — accept all.
     let agent_directive = answers
-        .pointer("/agent_directive/p_yes")
+        .pointer("/agent_directive/noul")
+        .or_else(|| answers.pointer("/agent_directive/p_yes"))
         .or_else(|| answers.pointer("/agent_directive/probabilities/true"))
         .and_then(Value::as_f64)
         .unwrap_or(0.0);
     let action_request = answers
-        .pointer("/action_request/p_yes")
+        .pointer("/action_request/noul")
+        .or_else(|| answers.pointer("/action_request/p_yes"))
         .or_else(|| answers.pointer("/action_request/probabilities/true"))
         .and_then(Value::as_f64)
         .unwrap_or(0.0);
@@ -341,6 +346,19 @@ mod tests {
         let sig = parse_typesafe_signals(body).unwrap();
         assert!((sig.agent_directive - 0.7).abs() < 1e-9);
         assert_eq!(sig.attack_type.as_ref().unwrap().0, "tool_invocation");
+    }
+
+    #[test]
+    fn parses_openrouter_decisions_noul() {
+        // Exact envelope returned live by https://openrouter.ai/api/alpha/decisions
+        // for model ~typesafe/jev-latest on an injected sample.
+        let body = br#"{"model":"typesafe/jev-1.13-20260917","answers":{"agent_directive":{"type":"noul","noul":0.99},"action_request":{"type":"noul","noul":0.97},"attack_type":{"type":"choice","choice":"override","probabilities":{"none":0.01,"override":0.68},"confidence":0.61}},"usage":{"cost":2.4948e-05}}"#;
+        let sig = parse_typesafe_signals(body).unwrap();
+        assert!((sig.agent_directive - 0.99).abs() < 1e-9);
+        assert!((sig.action_request - 0.97).abs() < 1e-9);
+        let (kind, conf) = sig.attack_type.as_ref().unwrap();
+        assert_eq!(kind, "override");
+        assert!((conf - 0.61).abs() < 1e-9);
     }
 
     #[test]

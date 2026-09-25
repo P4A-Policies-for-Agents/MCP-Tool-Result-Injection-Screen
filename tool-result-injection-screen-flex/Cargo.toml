@@ -1,14 +1,14 @@
 # Copyright 2026 Salesforce, Inc. All rights reserved.
 [package]
 name = "tool_result_injection_screen"
-version = "1.0.2"
+version = "1.0.3"
 rust-version = "1.88.0"
 edition = "2018"
 resolver = "2"
 
 [package.metadata.anypoint]
 group_id = "030e0aac-30d9-460f-9234-428c16a123c4"
-definition_asset_id = { name = "mcp-tool-result-injection-screen", version = "1.0.2" }
+definition_asset_id = { name = "mcp-tool-result-injection-screen", version = "1.0.3" }
 implementation_asset_id = "tool-result-injection-screen-flex"
 
 [dependencies]
