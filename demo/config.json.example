@@ -1,0 +1,32 @@
+{
+  "_comment": "Copy to demo/config.json and fill in. The demo uses the deterministic in-policy mock judge (jevProvider=mock + allowMock=true), so it needs NO external Jev key and runs fully offline. Swap jevProvider to typesafe/openai/openrouter/etc. + set jevApiKey to use a real System-One judge.",
+
+  "mode": "enforce",
+  "_mode_comment": "enforce applies the decision (withhold). shadow computes+logs but never mutates — use it for the first deployment, then flip to enforce. off skips the judge.",
+
+  "failMode": "closed",
+  "_failMode_comment": "For tools that fetch arbitrary external content (web, email) prefer closed: on a judge error/timeout the result is withheld rather than trusted. open passes through on error.",
+
+  "jevProvider": "mock",
+  "allowMock": true,
+  "_judge_comment": "mock = deterministic lexical judge baked into the policy (no network). allowMock MUST be true or the policy refuses to use it. jevService is required even for mock (any reachable URL; mock never calls it).",
+  "jevService": "https://www.a2d-ai.com",
+
+  "onBlock": "withhold",
+  "_onBlock_comment": "withhold replaces the result with a valid MCP error result (isError:true). quarantine keeps the content but prepends a warning. flag passes it unchanged and only logs the decision.",
+
+  "flagAt": 0.5,
+  "blockAt": 0.85,
+  "_bands_comment": "Injection score >= flagAt is flagged; >= blockAt is blocked. blockAt must be >= flagAt.",
+
+  "hiddenTextBoost": 0.15,
+  "_hidden_comment": "Added to the score when the result contained hidden text (zero-width chars, HTML comments) — this is what pushes the phish-9 email over blockAt.",
+
+  "assetType": "auto",
+  "_assetType_comment": "auto detects MCP JSON-RPC by envelope and treats everything else as rest/http. Force with mcp | rest | http.",
+
+  "logStateSample": false,
+  "_logStateSample_comment": "Off by default (screened text can contain personal data); the decision log records only an FNV-1a fingerprint. Turn on to log a truncated sample at debug level while demoing.",
+
+  "_optional_comment": "trustedTools (glob allowlist skipped), precheckPatterns (extra pre-flag phrases), blockOnPrecheckHit, directiveWeight/actionRequestWeight/attackTypeFloor, sampleRate, maxBodyBytes/onOversize, maxStateTokens all take built-in defaults if omitted."
+}
