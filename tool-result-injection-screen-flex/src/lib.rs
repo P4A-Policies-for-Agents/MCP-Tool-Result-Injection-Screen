@@ -72,7 +72,7 @@ fn score_params(cfg: &Config) -> ScoreParams {
 fn jev_settings(cfg: &Config) -> JevSettings {
     JevSettings {
         provider: Provider::parse(cfg.jev_provider.as_deref().unwrap_or("typesafe")),
-        model: cfg.jev_model.clone().unwrap_or_else(|| "jev-1.13.0".to_string()),
+        model: cfg.jev_model.clone().unwrap_or_else(|| "~typesafe/jev-latest".to_string()),
         path: cfg.jev_path.clone().unwrap_or_default(),
         api_key: cfg.jev_api_key.clone().unwrap_or_default(),
         custom_auth_header: cfg.custom_auth_header.clone().unwrap_or_else(|| "Authorization".to_string()),

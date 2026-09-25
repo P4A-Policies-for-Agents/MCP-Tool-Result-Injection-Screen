@@ -45,7 +45,7 @@ impl Provider {
             Provider::OpenAi => "/v1/chat/completions",
             Provider::OpenRouter => "/api/v1/chat/completions",
             Provider::LiteLlm | Provider::Custom => "/v1/chat/completions",
-            Provider::TypeSafe => "/v1/decisions",
+            Provider::TypeSafe => "/api/alpha/decisions",
             Provider::Cloudflare => "/client/v4/accounts",
             Provider::Mock => "",
         }

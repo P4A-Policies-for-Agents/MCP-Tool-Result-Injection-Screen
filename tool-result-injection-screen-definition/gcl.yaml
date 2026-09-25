@@ -64,10 +64,11 @@ spec:
       "@context": { "@characteristics": [security:sensitive] }
     jevModel:
       type: string
-      default: "jev-1.13.0"
+      default: "~typesafe/jev-latest"
       description: >-
-        Judge model id. For OpenAI-compatible providers set your chat model
-        (e.g. openai/gpt-4o-mini). Ignored for cloudflare and mock.
+        Judge model id. Defaults to the latest TypeSafe Jev model. For
+        OpenAI-compatible providers set your chat model (e.g. openai/gpt-4o-mini).
+        Ignored for cloudflare and mock.
     cloudflareAccountId:
       type: string
       description: Cloudflare account id (only when jevProvider is cloudflare).
